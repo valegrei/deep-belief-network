@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import truncnorm
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin, RegressorMixin
 
-from .activations import SigmoidActivationFunction, ReLUActivationFunction
+from .activations import SigmoidActivationFunction, ReLUActivationFunction, TanhActivationFunction
 from .utils import batch_generator
 
 
@@ -65,6 +65,12 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
             self.c = np.full(self.n_hidden_units, 0.1) / np.sqrt(self.n_visible_units)
             self.b = np.full(self.n_visible_units, 0.1) / np.sqrt(self.n_visible_units)
             self._activation_function_class = ReLUActivationFunction
+        elif self.activation_function == 'tanh':
+            self.W = truncnorm.rvs(-0.2, 0.2, size=[self.n_hidden_units, self.n_visible_units]) / np.sqrt(
+                self.n_visible_units)
+            self.c = np.full(self.n_hidden_units, 0.1) / np.sqrt(self.n_visible_units)
+            self.b = np.full(self.n_visible_units, 0.1) / np.sqrt(self.n_visible_units)
+            self._activation_function_class = TanhActivationFunction
         else:
             raise ValueError("Invalid activation function.")
 
@@ -324,7 +330,7 @@ class AbstractSupervisedDBN(BaseEstimator, BaseModel):
         self.p = 1 - self.dropout_p
         self.verbose = verbose
 
-    def fit(self, X, y=None, pre_train=True):
+    def fit(self, X, y=None, pre_train=True,sample_weight= None):
         """
         Fits a model given data.
         :param X: array-like, shape = (n_samples, n_features)
